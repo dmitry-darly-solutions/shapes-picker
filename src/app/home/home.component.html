@@ -1,0 +1,64 @@
+<mat-sidenav-container class="menu">
+  <mat-sidenav #sidenav mode="side" [(opened)]="opened">
+    <div class="menu-options">
+      <p>Color:
+        <input class="color-picker-input"
+               [style.background]="color"
+               [cpOKButton]="true"
+               [cpPosition]="'bottom'"
+               [cpWidth]="'150px'"
+               [cpSaveClickOutside]="false"
+               (colorPickerSelect)="setColor($event)"
+               [(colorPicker)]="color"/>
+      </p>
+      <p>{{isDelete ? 'Disable' : 'Enable'}} delete mode:</p>
+      <button mat-button (click)="isDelete = !isDelete" [ngStyle]="{'background-color': isDelete ? 'red' : 'gray'}">
+        <mat-icon>delete_forever</mat-icon>
+      </button>
+      <ng-container *ngIf="history$ | async as history">
+        <p>Get previous shape color:</p>
+        <button mat-button [disabled]="history.length <= 1" (click)="undoColor()">
+          <mat-icon>settings_backup_restore</mat-icon>
+        </button>
+      </ng-container>
+    </div>
+    <div cdkDropList class="shapes-list" [cdkDropListData]="shapes" (cdkDropListDropped)="drop($event)"
+         cdkDropListSortingDisabled>
+      <div class="shape-box" *ngFor="let shape of shapes" [cdkDragData]="shape" cdkDrag>
+        <i class="shape-icon {{shape}}"></i>
+        <i class="shape-preview {{shape}}" [ngStyle]="{color: color || '#000000'}" *cdkDragPreview></i>
+      </div>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <div class="content">
+      <button class="menu-toggle" mat-button (click)="sidenav.toggle()">
+        <mat-icon *ngIf="!opened">chevron_right</mat-icon>
+        <mat-icon *ngIf="opened">chevron_left</mat-icon>
+      </button>
+      <div class="example-list" *ngIf="shape$ | async as shape">
+        <div #box class="example-box"
+             cdkDrag
+             *ngFor="let item of items, let i = index"
+             (cdkDragEnded)="dragEnd($event, i)"
+             [cdkDragFreeDragPosition]="item.dragPosition">
+          <span class="picker-container"
+                [style.color]="item.color"
+                [cpOKButton]="true"
+                [cpPosition]="'bottom'"
+                [cpSaveClickOutside]="false"
+                [(colorPicker)]="item.color"
+                [cpUseRootViewContainer]="true"
+                (colorPickerSelect)="setColor($event)"
+                (click)="handleClick($event, i)"
+                (cpToggleChange)="setClass($event, box)">
+            <i class="shape-preview {{item.class}}"
+               [ngStyle]="{color: shape.id === item.id ? (shape?.color || '#000000') : (item.color || '#000000')}">
+            </i>
+          </span>
+        </div>
+      </div>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
