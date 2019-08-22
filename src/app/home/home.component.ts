@@ -1,19 +1,19 @@
-import { ChangeDetectorRef, Component, OnDestroy, Renderer2 } from '@angular/core';
+import { Component, OnDestroy, Renderer2 } from '@angular/core';
 import { CdkDragDrop, CdkDragEnd } from '@angular/cdk/drag-drop';
 import { select, Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { classNames } from '../shared/shape-class-names.constant';
 import { Shape } from '../core/store/reducers/shapes.reducers';
 import * as rootReducer from '../core/store';
 import * as fromSelectors from '../core/store/selectors';
 import * as fromActions from '../core/store/actions';
-import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
-  styleUrls: ['./home.component.sass']
+  styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnDestroy {
   public opened = true;
@@ -42,7 +42,7 @@ export class HomeComponent implements OnDestroy {
 
   subscribeOnReducers(): void {
     this.subscribeOnAllShapes();
-    this.subscribeOnColoreChange();
+    this.subscribeOnColorChange();
   }
 
   drop(event: CdkDragDrop<string[]>): void {
@@ -50,7 +50,7 @@ export class HomeComponent implements OnDestroy {
     const y = element.nativeElement.offsetTop + event.distance.y;
     const x = event.distance.x - element.nativeElement.offsetWidth + 50;
     const dragPosition = {x, y};
-    const shape = {dragPosition, class: event.item.data, color: this.color, colorsHistory: []} as Shape;
+    const shape = {dragPosition, class: event.item.data, color: this.color, colorsHistory: [this.color || '#000000']} as Shape;
     this.store.dispatch(new fromActions.ShapesAddShape(shape));
   }
 
@@ -79,7 +79,7 @@ export class HomeComponent implements OnDestroy {
       .split(',');
     position = position.map(param => +param.replace('px', ''));
     const dragPosition = {x: position[0], y: position[1]};
-    this.items[index].dragPosition = dragPosition;
+    this.store.dispatch(new fromActions.ShapesSaveShapePosition(dragPosition));
   }
 
   setColor(color: string): void {
@@ -101,7 +101,7 @@ export class HomeComponent implements OnDestroy {
     ).subscribe(resp => this.items = resp);
   }
 
-  subscribeOnColoreChange(): void {
+  subscribeOnColorChange(): void {
     this.store.pipe(
       select(fromSelectors.getSelectedShapeColor),
       takeUntil(this.destroy$),

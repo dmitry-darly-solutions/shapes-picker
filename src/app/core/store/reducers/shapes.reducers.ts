@@ -69,7 +69,8 @@ export function shapesReducer(
 
     case fromActions.SHAPES_CHANGE_SHAPE_COLOR_HISTORY: {
       const selectedShape = {...state.selectedShape};
-      selectedShape.color = selectedShape.colorsHistory.pop();
+      selectedShape.colorsHistory.pop();
+      selectedShape.color = selectedShape.colorsHistory[selectedShape.colorsHistory.length - 1];
       return {...state, selectedShape};
     }
 
